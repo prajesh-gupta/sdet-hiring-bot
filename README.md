@@ -2,7 +2,7 @@
 
 An AI-powered mock interview tool that simulates a structured SDET interview with **Alex**, a Senior Engineering Manager persona powered by Claude Sonnet.
 
-![screenshot](https://i.imgur.com/placeholder.png)
+![screenshot](screenshots/app.png)
 
 ## Features
 
