@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SDET Interview — Alex</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <div class="app">
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="logo">⚡ SDET Interviewer</div>
+      </div>
+      <div class="interviewer-card">
+        <div class="avatar-large">A</div>
+        <div class="interviewer-name">Alex</div>
+        <div class="interviewer-title">Engineering Manager</div>
+        <div class="interviewer-meta">10+ years · SDET Hiring</div>
+      </div>
+      <div class="phase-tracker">
+        <div class="phase-label">Interview Progress</div>
+        <div class="phase-item" id="phase-1">
+          <span class="phase-dot"></span>
+          <span>Screening</span>
+        </div>
+        <div class="phase-item" id="phase-2">
+          <span class="phase-dot"></span>
+          <span>Technical Deep Dive</span>
+        </div>
+        <div class="phase-item" id="phase-3">
+          <span class="phase-dot"></span>
+          <span>Behavioural</span>
+        </div>
+        <div class="phase-item" id="phase-4">
+          <span class="phase-dot"></span>
+          <span>Evaluation Report</span>
+        </div>
+      </div>
+      <div class="proctor-panel">
+        <div class="proctor-header">
+          <span class="proctor-title">🔍 Proctoring</span>
+          <span class="proctor-badge" id="proctorBadge"></span>
+        </div>
+        <div class="proctor-row">
+          <span class="proctor-label">Pastes</span>
+          <span class="proctor-value" id="statPaste">0</span>
+        </div>
+        <div class="proctor-row">
+          <span class="proctor-label">Avg think time</span>
+          <span class="proctor-value" id="statAvgThink">—</span>
+        </div>
+        <div class="proctor-row">
+          <span class="proctor-label">Avg typing speed</span>
+          <span class="proctor-value" id="statAvgSpeed">—</span>
+        </div>
+      </div>
+      <div class="ttl-panel" id="ttlPanel" style="display:none">
+        <div class="proctor-header">
+          <span class="proctor-title">⏱ Time Remaining</span>
+        </div>
+        <div class="ttl-value" id="ttlValue">—</div>
+        <div class="ttl-bar-bg"><div class="ttl-bar" id="ttlBar"></div></div>
+      </div>
+      <button class="reset-btn" id="resetBtn" style="display:none">↺ New Interview</button>
+    </aside>
+
+    <!-- Main chat area -->
+    <main class="chat-area">
+      <div class="chat-header">
+        <div class="chat-header-info">
+          <div class="avatar-small">A</div>
+          <div>
+            <div class="chat-name">Alex</div>
+            <div class="chat-status"><span class="status-dot"></span> Ready to interview</div>
+          </div>
+        </div>
+        <div class="chat-header-badge">SDET · Senior Level</div>
+      </div>
+
+      <div class="messages" id="messages">
+        <!-- Token validation: loading -->
+        <div class="welcome-screen" id="loadingScreen">
+          <div class="welcome-icon">⏳</div>
+          <h2>Verifying your link…</h2>
+        </div>
+        <!-- Token error -->
+        <div class="welcome-screen" id="errorScreen" style="display:none">
+          <div class="welcome-icon">🔒</div>
+          <h2 id="errorTitle">Invalid Link</h2>
+          <p id="errorMsg">This interview link is not valid.</p>
+        </div>
+        <!-- Welcome (shown after valid token) -->
+        <div class="welcome-screen" id="welcomeScreen" style="display:none">
+          <div class="welcome-icon">👋</div>
+          <h2 id="welcomeHeading">Ready for your SDET Interview?</h2>
+          <p>Alex will conduct a structured 30–35 minute interview covering your experience, technical skills, and problem-solving approach.</p>
+          <button class="start-btn" id="startBtn">Start Interview</button>
+        </div>
+      </div>
+
+      <div class="input-area" id="inputArea" style="display:none;">
+        <div class="input-wrapper">
+          <textarea
+            id="userInput"
+            placeholder="Type your answer..."
+            rows="1"
+          ></textarea>
+          <button id="sendBtn" class="send-btn" disabled>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="22" y1="2" x2="11" y2="13"></line>
+              <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+            </svg>
+          </button>
+        </div>
+        <div class="input-hint">Press <kbd>Enter</kbd> to send · <kbd>Shift+Enter</kbd> for new line</div>
+      </div>
+    </main>
+
+  </div>
+
+  <!-- Evaluation Modal -->
+  <div class="modal-overlay" id="modalOverlay" style="display:none;">
+    <div class="modal" id="evalModal">
+      <div class="modal-header">
+        <h3>📋 Evaluation Report</h3>
+        <button class="modal-close" id="modalClose">✕</button>
+      </div>
+      <div class="modal-body" id="evalContent"></div>
+    </div>
+  </div>
+
+  <script src="interview.js"></script>
+</body>
+</html>

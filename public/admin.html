@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SDET Interviewer — Admin</title>
+  <link rel="stylesheet" href="admin.css" />
+</head>
+<body>
+
+  <!-- Login screen -->
+  <div id="loginScreen" class="login-screen">
+    <div class="login-card">
+      <div class="login-logo">⚡</div>
+      <h1 class="login-title">SDET Interviewer</h1>
+      <p class="login-sub">Admin Portal</p>
+      <form id="loginForm" class="login-form">
+        <div class="field">
+          <label>Username</label>
+          <input type="text" id="loginUser" autocomplete="username" required />
+        </div>
+        <div class="field">
+          <label>Password</label>
+          <input type="password" id="loginPass" autocomplete="current-password" required />
+        </div>
+        <div id="loginError" class="login-error" style="display:none"></div>
+        <button type="submit" class="btn-primary" id="loginBtn">Sign In</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Dashboard -->
+  <div id="dashboard" class="dashboard" style="display:none">
+
+    <header class="dash-header">
+      <div class="dash-logo">⚡ SDET Interviewer <span class="dash-admin-tag">Admin</span></div>
+      <button class="btn-ghost" id="logoutBtn">Sign Out</button>
+    </header>
+
+    <div class="dash-tabs">
+      <button class="tab active" data-tab="interviews">📋 Interviews</button>
+      <button class="tab" data-tab="candidates">👥 Candidates</button>
+    </div>
+
+    <!-- Interviews tab -->
+    <div class="tab-content" id="tab-interviews">
+      <div class="tab-panel">
+        <div class="panel-header">
+          <h2>Past Interviews</h2>
+          <span class="count-badge" id="interviewCount">—</span>
+        </div>
+        <div id="interviewsBody">
+          <div class="empty-state">Loading…</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Candidates tab -->
+    <div class="tab-content" id="tab-candidates" style="display:none">
+      <div class="tab-panel">
+        <div class="panel-header">
+          <h2>Create Interview Link</h2>
+        </div>
+        <form id="createForm" class="create-form">
+          <div class="form-row">
+            <div class="field">
+              <label>Candidate Name *</label>
+              <input type="text" id="cName" placeholder="Jane Smith" required />
+            </div>
+            <div class="field">
+              <label>Email (optional)</label>
+              <input type="email" id="cEmail" placeholder="jane@company.com" />
+            </div>
+            <div class="field field-sm">
+              <label>TTL (minutes)</label>
+              <input type="number" id="cTtl" value="120" min="10" max="480" />
+            </div>
+            <button type="submit" class="btn-primary create-btn">Generate Link</button>
+          </div>
+          <div id="newLink" class="new-link-box" style="display:none">
+            <span id="newLinkText"></span>
+            <button type="button" class="btn-copy" id="copyNewLink">Copy</button>
+          </div>
+        </form>
+
+        <div class="panel-header" style="margin-top:32px">
+          <h2>All Candidates</h2>
+          <span class="count-badge" id="candidateCount">—</span>
+        </div>
+        <div id="candidatesBody">
+          <div class="empty-state">Loading…</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Interview detail modal -->
+  <div class="modal-overlay" id="detailModal" style="display:none">
+    <div class="modal">
+      <div class="modal-hdr">
+        <h3 id="modalTitle">Evaluation Report</h3>
+        <button class="btn-close" id="closeModal">✕</button>
+      </div>
+      <div class="modal-body" id="modalBody"></div>
+    </div>
+  </div>
+
+  <script src="admin.js"></script>
+</body>
+</html>
