@@ -13,6 +13,12 @@ let conversationHistory = [];
 let isLoading = false;
 let rawEvalReport = '';
 
+// ── Proctoring state ──────────────────────────────────────────────────
+let proctoringLog = { pasteEvents: [], responseTimes: [] };
+let alexStreamEndTime = null;
+let firstKeystrokeTime = null;
+let userMsgCount = 0;
+
 // ── Phase tracking keywords ──────────────────────────────────────────
 const phaseKeywords = {
   2: ['technical', 'framework', 'automation', 'test design', 'api', 'ci/cd', 'mobile', 'debugging', 'selenium', 'appium', 'playwright'],
@@ -33,11 +39,21 @@ function updatePhase(text) {
   });
 }
 
-// ── Textarea auto-resize ──────────────────────────────────────────────
+// ── Textarea auto-resize + first-keystroke tracking ──────────────────
 userInput.addEventListener('input', () => {
   userInput.style.height = 'auto';
   userInput.style.height = Math.min(userInput.scrollHeight, 120) + 'px';
   sendBtn.disabled = !userInput.value.trim();
+  if (firstKeystrokeTime === null && !isLoading && alexStreamEndTime !== null) {
+    firstKeystrokeTime = Date.now();
+  }
+});
+
+// ── Paste detection ───────────────────────────────────────────────────
+userInput.addEventListener('paste', (e) => {
+  const pastedText = e.clipboardData?.getData('text') || '';
+  proctoringLog.pasteEvents.push({ msgIndex: userMsgCount, chars: pastedText.length });
+  updateProctoringPanel();
 });
 
 userInput.addEventListener('keydown', (e) => {
@@ -59,6 +75,11 @@ startBtn.addEventListener('click', async () => {
 resetBtn.addEventListener('click', () => {
   conversationHistory = [];
   rawEvalReport = '';
+  proctoringLog = { pasteEvents: [], responseTimes: [] };
+  alexStreamEndTime = null;
+  firstKeystrokeTime = null;
+  userMsgCount = 0;
+  updateProctoringPanel();
   messagesEl.innerHTML = '';
   inputArea.style.display = 'none';
   document.querySelectorAll('.phase-item').forEach(el => el.classList.remove('active','done'));
@@ -87,6 +108,16 @@ sendBtn.addEventListener('click', sendMessage);
 function sendMessage() {
   const text = userInput.value.trim();
   if (!text || isLoading) return;
+
+  // ── Record latency fingerprint for this message ───────────────────
+  const submitTime = Date.now();
+  const thinkingMs = alexStreamEndTime !== null ? Math.max(0, submitTime - alexStreamEndTime) : null;
+  const typingMs   = firstKeystrokeTime !== null ? Math.max(0, submitTime - firstKeystrokeTime) : null;
+  const wpm        = (typingMs && typingMs > 0 && text.length) ? Math.round((text.length / 5) / (typingMs / 60000)) : null;
+  proctoringLog.responseTimes.push({ msgIndex: userMsgCount, thinkingMs, typingMs, chars: text.length, wpm });
+  userMsgCount++;
+  firstKeystrokeTime = null;
+  updateProctoringPanel();
 
   appendMessage('user', text);
   conversationHistory.push({ role: 'user', content: text });
@@ -201,6 +232,9 @@ async function getAIResponse(history) {
       }
     }
 
+    // Record when Alex finished responding (user can now start thinking/typing)
+    alexStreamEndTime = Date.now();
+
     // Check for evaluation report
     const evalMatch = fullText.match(/<evaluation>([\s\S]*?)<\/evaluation>/);
     if (evalMatch) {
@@ -284,7 +318,7 @@ function parseOverall(report) {
 
 // ── Modal ─────────────────────────────────────────────────────────────
 function openModal() {
-  evalContent.textContent = rawEvalReport;
+  evalContent.textContent = buildProctoringReport() + '\n' + rawEvalReport;
   modalOverlay.style.display = 'flex';
 }
 
@@ -292,6 +326,70 @@ modalClose.addEventListener('click', () => modalOverlay.style.display = 'none');
 modalOverlay.addEventListener('click', (e) => {
   if (e.target === modalOverlay) modalOverlay.style.display = 'none';
 });
+
+// ── Proctoring ────────────────────────────────────────────────────────
+function updateProctoringPanel() {
+  const pasteCount = proctoringLog.pasteEvents.length;
+  const times  = proctoringLog.responseTimes.filter(r => r.thinkingMs !== null);
+  const speeds = proctoringLog.responseTimes.filter(r => r.wpm !== null);
+  const avgThink = times.length  ? Math.round(times.reduce((a, b)  => a + b.thinkingMs, 0) / times.length / 1000) : null;
+  const avgWpm   = speeds.length ? Math.round(speeds.reduce((a, b) => a + b.wpm, 0)        / speeds.length)       : null;
+
+  // Paste stat
+  const pasteEl = document.getElementById('statPaste');
+  pasteEl.textContent = pasteCount;
+  pasteEl.className = 'proctor-value' + (pasteCount >= 3 ? ' val-red' : pasteCount >= 1 ? ' val-yellow' : '');
+
+  // Think time stat
+  document.getElementById('statAvgThink').textContent = avgThink !== null ? `${avgThink}s` : '—';
+
+  // Typing speed stat
+  const speedEl = document.getElementById('statAvgSpeed');
+  speedEl.textContent = avgWpm !== null ? `${avgWpm} wpm` : '—';
+  speedEl.className = 'proctor-value' + (avgWpm > 100 ? ' val-red' : avgWpm > 40 ? ' val-green' : '');
+
+  // Badge
+  const badge = document.getElementById('proctorBadge');
+  const suspicious = pasteCount >= 3 || (avgWpm !== null && avgWpm > 100);
+  const warned     = pasteCount >= 1;
+  if (suspicious) {
+    badge.textContent = '⚠ Suspicious';
+    badge.className = 'proctor-badge badge-red';
+  } else if (warned) {
+    badge.textContent = `⚠ ${pasteCount} paste${pasteCount > 1 ? 's' : ''}`;
+    badge.className = 'proctor-badge badge-yellow';
+  } else {
+    badge.className = 'proctor-badge';
+  }
+}
+
+function buildProctoringReport() {
+  const pasteCount = proctoringLog.pasteEvents.length;
+  const times  = proctoringLog.responseTimes.filter(r => r.thinkingMs !== null);
+  const speeds = proctoringLog.responseTimes.filter(r => r.wpm !== null);
+  const avgThink = times.length  ? Math.round(times.reduce((a, b)  => a + b.thinkingMs, 0) / times.length / 1000) : null;
+  const avgWpm   = speeds.length ? Math.round(speeds.reduce((a, b) => a + b.wpm, 0)        / speeds.length)       : null;
+
+  const flags = [];
+  if (pasteCount >= 3) flags.push(`High paste activity (${pasteCount} paste events)`);
+  else if (pasteCount > 0) flags.push(`Paste activity detected (${pasteCount} event${pasteCount > 1 ? 's' : ''})`);
+  if (avgWpm !== null && avgWpm > 100) flags.push(`Unusually high typing speed (${avgWpm} wpm avg — possible copy-paste)`);
+
+  const lines = [
+    '=== PROCTORING REPORT ===',
+    `Paste Events:       ${pasteCount}`,
+    `Avg Thinking Time:  ${avgThink !== null ? avgThink + 's per response' : 'N/A'}`,
+    `Avg Typing Speed:   ${avgWpm   !== null ? avgWpm   + ' wpm'          : 'N/A'}`,
+    `Total Responses:    ${userMsgCount}`,
+    '',
+    flags.length
+      ? '⚠ FLAGS:\n' + flags.map(f => `  - ${f}`).join('\n')
+      : '✓ No suspicious activity detected',
+    '=========================',
+    '',
+  ];
+  return lines.join('\n');
+}
 
 // ── Helpers ───────────────────────────────────────────────────────────
 function scrollToBottom() {

@@ -583,6 +583,73 @@ kbd {
   font-family: monospace;
 }
 
+/* ── Proctoring Panel ── */
+.proctor-panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.proctor-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 2px;
+}
+
+.proctor-title {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: var(--text-dim);
+}
+
+.proctor-badge {
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 7px;
+  border-radius: 10px;
+  display: none;
+}
+
+.proctor-badge.badge-yellow {
+  display: inline-block;
+  background: rgba(245, 158, 11, 0.15);
+  color: var(--yellow);
+}
+
+.proctor-badge.badge-red {
+  display: inline-block;
+  background: rgba(239, 68, 68, 0.15);
+  color: var(--red);
+}
+
+.proctor-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 12px;
+}
+
+.proctor-label {
+  color: var(--text-muted);
+}
+
+.proctor-value {
+  font-weight: 600;
+  color: var(--text);
+  font-size: 12px;
+}
+
+.proctor-value.val-yellow { color: var(--yellow); }
+.proctor-value.val-red    { color: var(--red); }
+.proctor-value.val-green  { color: var(--green); }
+
 /* ── Modal ── */
 .modal-overlay {
   position: fixed;
